@@ -1,0 +1,75 @@
+#!/usr/bin/env php
+<?php
+
+/*
++------------------------------------------------------------------------+
+| Phady Framework                                                        |
++------------------------------------------------------------------------+
+| Copyright (c) 2015                                                     |
++------------------------------------------------------------------------+
+| Phady Framework is a complement of Phalcon Framework                   |
+|                                                                        |
++------------------------------------------------------------------------+
+| Authors: Alien fernandez Fuentes <alienfernandez85@gmail.com>          |
++------------------------------------------------------------------------+
+*/
+
+error_reporting(E_ALL);
+
+use Phady\Script;
+use Phady\Version;
+use Phalcon\Script\Color;
+use Phalcon\Commands\CommandsListener;
+
+try {
+
+	if (!extension_loaded('phalcon')) {
+		throw new Exception('Phalcon extension isn\'t installed, follow these instructions to install it: http://phalconphp.com/documentation/install');
+	}
+	if (!extension_loaded('phady')) {
+		throw new Exception('Phady extension isn\'t installed, follow these instructions to install it: URL');
+	}
+	$loader = new \Phalcon\Loader();
+
+	$loader->registerDirs(array(
+		'@php_dir@/'
+	));
+
+	$loader->registerNamespaces(array(
+		'Phalcon' => '@php_dir@/'
+	));
+
+	$loader->register();
+
+	if (Version::getId() < Script::COMPATIBLE_VERSION) {
+		throw new Exception('Your Phady version isn\'t compatible with Developer Tools, download the latest at: URL_DOWNLOAD');
+	}
+
+    if (!defined('TEMPLATE_PATH')) {
+        define('TEMPLATE_PATH', '@php_dir@/Phady/templates');
+    }
+
+	$vendor = sprintf('Phady DevTools (%s)', Version::get());
+	print PHP_EOL . Color::colorize($vendor, Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
+
+	$eventsManager = new Phalcon\Events\Manager();
+
+	$eventsManager->attach('command', new CommandsListener());
+
+	$script = new Script($eventsManager);
+
+	$commandsToEnable = array(
+		'\Phady\Commands\Builtin\Project'
+	);
+	foreach ($commandsToEnable as $command){
+		$script->attach(new $command($script, $eventsManager));
+	}
+
+	$script->run();
+}
+catch (\Phady\Exception $e) {
+	print Color::error($e->getMessage()) . PHP_EOL;
+}
+catch (\Exception $e) {
+	print Color::error($e->getMessage()) . PHP_EOL;
+}
