@@ -10,7 +10,7 @@ with Phady framework.
 
 ## Installation via Git
 
-Phalcon Devtools can be installed by using Git.
+Phady Devtools can be installed by using Git.
 
 Just clone the repo and checkout the current branch:
 
